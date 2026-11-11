@@ -50,6 +50,13 @@
       </div>
       <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
       <input type="file" id="galleryInput" accept="image/*" hidden />
+      <div class="model-select">
+        <span class="model-label">识别模型</span>
+        <div class="model-options" id="modelOptions" role="radiogroup" aria-label="识别模型">
+          <button type="button" class="model-option" data-model="glm" role="radio" aria-checked="false">GLM<small>4.6V-Flash · 免费</small></button>
+          <button type="button" class="model-option is-active" data-model="qwen" role="radio" aria-checked="true">Qwen<small>3-VL-Plus</small></button>
+        </div>
+      </div>
       <button type="button" class="button button-primary" id="analyzeButton" disabled>
         <span id="buttonText">先拍摄或选择照片</span>
         <svg id="buttonArrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 14 0m-6-6 6 6-6 6"/></svg>

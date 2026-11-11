@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GLM Vision Lab · 图片识别工作台</title>
+  <style>
+    :root{--bg:#f5f6fa;--surface:#fff;--text:#16203a;--muted:#7a8498;--line:#e5e8f1;--primary:#6155e8;--primary-weak:#eeeefe;--success:#15846f;--danger:#c43c57;--shadow:0 8px 35px rgba(26,39,76,.045)}
+    *{box-sizing:border-box}body{margin:0;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg)}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #b7b1ff;outline-offset:2px}
+    .shell{display:grid;grid-template-columns:266px minmax(0,1fr);min-height:100vh}.sidebar{background:#161d36;color:#e5eaff;padding:30px 23px;display:flex;flex-direction:column;gap:26px}.brand{display:flex;align-items:center;gap:12px;margin-bottom:7px}.brandmark{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:linear-gradient(140deg,#958aff,#6155e8);font-size:22px}.brand strong{font-size:19px;letter-spacing:-.6px}.brand small{display:block;line-height:1.1;font-size:10px;letter-spacing:2.7px;color:#9ba6c6}.navlabel{font-size:11px;color:#7886ab;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 12px}.sidechip{display:flex;gap:9px;align-items:center;background:rgba(123,119,236,.13);border:1px solid rgba(151,144,241,.23);padding:12px 13px;border-radius:12px;color:#d9d6ff;font-size:13px}.dot{height:7px;width:7px;border-radius:50%;background:#75d0af;display:inline-block;flex:none}.formlabel{display:block;margin:0 0 8px;font-weight:650;font-size:12px;color:#cad2e6}.field{width:100%;border-radius:10px;background:#222c48;border:1px solid #37415e;color:#f2f3ff;padding:11px 12px;outline:none}.field::placeholder{color:#8592b2}.field:focus{border-color:#a199ff}.keyrow{display:flex;position:relative}.keyrow input{padding-right:55px}.keyrow button{position:absolute;right:6px;top:5px;bottom:5px;background:transparent;color:#b8c0d9;border:0;font-size:12px;padding:0 9px}.sidenote{font-size:12px;color:#9ca7c4;line-height:1.75;margin:10px 0 0}.links{margin-top:auto;padding-top:15px;border-top:1px solid #35415c}.links a{display:block;color:#b3bdf0;text-decoration:none;margin-top:10px;font-size:12px}.links a:hover{text-decoration:underline}
+    .workspace{min-width:0;padding:32px clamp(20px,3.4vw,62px) 50px;max-width:1600px;width:100%;margin:0 auto}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:24px}.eyebrow{font-weight:800;letter-spacing:2px;color:var(--primary);font-size:10px;text-transform:uppercase}.top h1{font-size:clamp(24px,2.5vw,33px);letter-spacing:-1px;margin:4px 0 3px;line-height:1.3}.sub{color:var(--muted);margin:0;font-size:13px}.tag{display:inline-flex;gap:6px;align-items:center;border:1px solid #d8e8e3;background:#ebf8f2;color:#16795e;border-radius:99px;font-size:12px;font-weight:700;padding:6px 11px;white-space:nowrap}.cards{display:grid;grid-template-columns:minmax(290px,1fr) minmax(320px,1.03fr);gap:20px}.panel{border:1px solid var(--line);background:var(--surface);border-radius:18px;box-shadow:var(--shadow);min-width:0;overflow:hidden}.panelhead{padding:21px 22px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}.paneltitle{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:760}.num{height:24px;width:24px;display:grid;place-items:center;border-radius:8px;background:var(--primary-weak);color:var(--primary);font-size:12px;font-weight:800}.lightlink{border:0;background:transparent;color:var(--muted);font-size:12px}.lightlink:hover{color:var(--primary)}.panelbody{padding:0 22px 22px}
+    .drop{border:1.7px dashed #cbd1e6;background:linear-gradient(145deg,#fafbff,#f7f8fd);min-height:267px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;transition:.2s;position:relative;overflow:hidden;cursor:pointer}.drop:hover,.drop.drag{border-color:#8277e9;background:#f1f0ff}.drop.hasimage{background:#f6f7fb}.uploadicon{display:grid;place-items:center;border-radius:17px;background:#eeedff;color:#6c60e9;width:60px;height:60px;font-size:26px;margin-bottom:14px}.drop strong{font-size:15px}.drop small{display:block;color:var(--muted);margin-top:6px;line-height:1.8}.drop .browse{margin-top:15px;background:white;border:1px solid #dce0ed;color:#5148bc;border-radius:9px;padding:7px 16px;font-weight:700}.preview{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#f0f1f7;padding:8px;display:none}.hasimage .preview{display:block}.overlay{display:none;position:absolute;bottom:10px;right:10px;background:rgba(16,26,48,.83);color:white;padding:7px 12px;border-radius:8px;font-size:12px}.hasimage .overlay{display:block}.fileinfo{display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:11px;color:var(--muted)}.subtitle{font-size:12px;font-weight:800;color:#566077;margin:21px 0 9px}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.chip{border:1px solid #e1e4ef;background:white;color:#59647d;padding:6px 11px;border-radius:8px;font-size:12px}.chip:hover,.chip.active{background:#f0efff;border-color:#b8b1ff;color:#5145bc}.prompt{resize:vertical;min-height:114px;width:100%;border:1px solid #dfe3ed;border-radius:11px;padding:12px 13px;line-height:1.7;color:#29334e;outline:none}.prompt:focus{border-color:#8d84f2}.controls{display:flex;gap:8px;margin-top:16px}.primary{background:linear-gradient(110deg,#6257e6,#7569f5);box-shadow:0 5px 15px #685cf23b;color:white;border:0;border-radius:10px;font-weight:750;min-height:44px;padding:0 18px;flex:1}.primary:hover:not(:disabled){filter:brightness(1.05)}.secondary{border:1px solid #e0e4ee;background:white;border-radius:10px;color:#55617a;font-weight:700;padding:0 15px}.status{display:flex;gap:8px;align-items:center;color:#8c95a6;font-size:12px}.status.running{color:#6860c5}.status.good{color:var(--success)}.status.bad{color:var(--danger)}.result{border:1px solid #e4e7ef;border-radius:12px;min-height:350px;background:#fcfcff;padding:17px 18px;white-space:pre-wrap;overflow-wrap:anywhere;color:#29334e;line-height:1.9;font-size:13.5px;max-height:590px;overflow:auto}.empty{min-height:310px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;color:#9da6ba}.empty .eicon{display:grid;place-items:center;background:#f1f2f9;border-radius:18px;width:64px;height:64px;font-size:26px;color:#a5abc5}.resactions{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:10px}.btnrow{display:flex;gap:7px}.smallbutton{background:white;border:1px solid #e0e4ed;border-radius:8px;padding:7px 11px;color:#66718b;font-size:12px}.smallbutton:hover{color:var(--primary);border-color:#c9c3ff}.outputstats{color:#98a1b3;font-size:11px}.foot{margin-top:20px;display:flex;align-items:flex-start;gap:10px;color:#7b859d;font-size:12px;border:1px solid #e6e9f1;border-radius:12px;padding:12px 15px;background:rgba(255,255,255,.7)}.spinner{width:15px;height:15px;display:inline-block;border:2px solid #ddd8ff;border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}@keyframes spin{to{transform:rotate(360deg)}}.toast{position:fixed;bottom:24px;right:25px;max-width:min(410px,90vw);padding:12px 18px;color:white;background:#202843;box-shadow:0 9px 35px #10172c33;border-radius:11px;display:none;z-index:90;white-space:pre-wrap}.toast.visible{display:block}.method{width:100%;color:#f0f2ff}.divider{height:1px;background:#35415c;margin:4px 0}.tiny{font-size:11px;color:#7f8ba7}.errorText{color:#bd3452}.helpnote{margin-top:8px;color:#93a0be;font-size:11px}.kbd{background:#323d5e;border-radius:4px;padding:2px 5px;color:#c1c8e3;font-size:10px}
+    @media(max-width:1060px){.shell{grid-template-columns:220px minmax(0,1fr)}.sidebar{padding:26px 18px}.cards{grid-template-columns:1fr}.result{min-height:265px}}@media(max-width:700px){.shell{display:block}.sidebar{padding:18px;gap:14px}.sidebar .links{display:none}.workspace{padding:22px 14px 36px}.top{align-items:start}.tag{font-size:10px}.panelhead{padding:17px 16px 14px}.panelbody{padding:0 16px 16px}.drop{min-height:220px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brandmark">✦</span><div><strong>Vision Lab</strong><small>GLM WORKBENCH</small></div></div>
+    <div class="sidechip"><span class="dot"></span><span>GLM-4.6V-Flash · 免费模型</span></div>
+    <div>
+      <p class="navlabel">连接设置</p>
+      <label class="formlabel" for="apiKey">智谱 API Key</label>
+      <div class="keyrow"><input class="field" id="apiKey" type="password" spellcheck="false" autocomplete="off" placeholder="粘贴你的 API Key"><button type="button" id="toggleKey">显示</button></div>
+      <p class="sidenote">仅用于当前页面的请求，不写入 localStorage、Cookie 或文件。关闭或刷新页面后需重新输入。</p>
+    </div>
+    <div>
+      <label class="formlabel" for="mode">调用方式</label>
+      <select class="field method" id="mode">
+        <option value="auto">自动选择（推荐）</option>
+        <option value="direct">浏览器直连 · 纯 HTML</option>
+        <option value="proxy">本地代理 · 更稳定</option>
+      </select>
+      <p class="sidenote" id="modeHint"></p>
+    </div>
+    <div class="divider"></div>
+    <div>
+      <p class="navlabel">使用提示</p>
+      <p class="sidenote">① 输入 API Key<br>② 上传 JPG / PNG / WebP 图片<br>③ 选择识别方式或修改提示词<br>④ 点击「开始识别」</p>
+      <p class="sidenote">支持拖拽图片和 <span class="kbd">⌘V</span> / <span class="kbd">Ctrl+V</span> 粘贴截图。</p>
+    </div>
+    <div class="links"><p class="navlabel">相关链接</p><a target="_blank" rel="noopener noreferrer" href="https://www.bigmodel.cn/usercenter/proj-mgmt/apikeys">申请 / 管理 API Key ↗</a><a target="_blank" rel="noopener noreferrer" href="https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.6v">GLM-4.6V 官方文档 ↗</a></div>
+  </aside>
+  <main class="workspace">
+    <header class="top"><div><div class="eyebrow">MULTIMODAL AI PLAYGROUND</div><h1>图片识别工作台</h1><p class="sub">上传图片，让视觉模型把它转成可编辑、可复制的文字。</p></div><span class="tag"><span class="dot"></span> Image → Text</span></header>
+    <section class="cards">
+      <div class="panel">
+        <div class="panelhead"><div class="paneltitle"><span class="num">01</span> 输入图片与指令</div><button class="lightlink" id="clearImage" type="button">清除图片</button></div>
+        <div class="panelbody">
+          <div class="drop" id="drop" role="button" tabindex="0" aria-label="上传图片"><div class="uploadicon">⇧</div><strong>拖拽图片到这里</strong><small>或者选择本地文件进行识别<br>JPG、PNG、WebP · 原图不超过 5 MB</small><button type="button" class="browse" id="browse">选择图片</button><img class="preview" id="preview" alt="上传图片预览"><span class="overlay">点击替换图片</span></div>
+          <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" hidden>
+          <div class="fileinfo"><span id="fileName">尚未选择图片</span><span id="fileSize">—</span></div>
+          <div class="subtitle">快速指令</div>
+          <div class="chips" id="chips">
+            <button type="button" class="chip active" data-preset="describe">详细描述</button><button type="button" class="chip" data-preset="brief">一句话概括</button><button type="button" class="chip" data-preset="ocr">文字提取 OCR</button><button type="button" class="chip" data-preset="style">风格分析</button><button type="button" class="chip" data-preset="json">结构化 JSON</button>
+          </div>
+          <label class="subtitle" style="display:block;margin-top:17px" for="prompt">提示词（可以自由修改）</label>
+          <textarea class="prompt" id="prompt">请详细描述这张图片，包括主体、环境、颜色、构图以及重要的细节。用中文回答，不要编造看不清的内容。</textarea>
+          <div class="controls"><button class="primary" type="button" id="run">✦ &nbsp;开始识别</button><button class="secondary" type="button" id="cancel" hidden>取消</button></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panelhead"><div class="paneltitle"><span class="num">02</span> AI 识别结果</div><span class="status" id="status">● 等待输入</span></div>
+        <div class="panelbody">
+          <div class="result" id="result" aria-live="polite"><div class="empty"><div class="eicon">✦</div><div><strong style="color:#6d7893;font-size:14px">等待图片识别</strong><br><small>识别结果将在这里显示<br>支持一键复制或保存为 TXT</small></div></div></div>
+          <div class="resactions"><span class="outputstats" id="outputStats">尚无结果</span><div class="btnrow"><button class="smallbutton" type="button" id="copy" disabled>复制文本</button><button class="smallbutton" type="button" id="download" disabled>保存 TXT</button></div></div>
+        </div>
+      </div>
+    </section>
+    <div class="foot">ⓘ <span>适合你自己在本地测试。浏览器直连可能因智谱接口的跨域策略失败；此时运行附带的 <b>glm_local.py</b>，再通过 <b>http://127.0.0.1:8765</b> 打开即可。不要把带有自己 API Key 的页面部署为公共服务。</span></div>
+  </main>
+</div>
+<div id="toast" class="toast" role="status"></div>
+<script>
+(()=>{
+  'use strict';
+  const ENDPOINT='https://open.bigmodel.cn/api/paas/v4/chat/completions';
+  const $=id=>document.getElementById(id);
+  const PRESETS={
+    describe:'请详细描述这张图片，包括主体、环境、颜色、构图以及重要的细节。用中文回答，不要编造看不清的内容。',
+    brief:'请用一句简洁、准确的中文概括这张图片最重要的内容。',
+    ocr:'请识别并完整转写图片中的文字，尽量保持原始段落、数字、标点与顺序。对于不清晰的文字，用【无法辨认】标记，不要猜测。',
+    style:'请分析这张图片的视觉风格，包括色彩搭配、构图、光照、质感、艺术流派、氛围和可以复现的视觉关键词。',
+    json:'请识别图片，并仅返回合法 JSON，字段包括：summary（简短描述）、objects（可见物体数组）、colors（主要颜色数组）、scene（场景）、text（图中可读文字）。不要添加代码围栏或解释。'
+  };
+  let file=null,controller=null,resultText='',imageURL=null,toaster=null;
+  const isLocalServer=location.hostname==='127.0.0.1'||location.hostname==='localhost';
+  $('modeHint').textContent=isLocalServer?'已检测到本地服务。默认通过代理请求 API。':'直接双击打开的 HTML 会尝试直连 API；如果出现跨域错误，请用配套本地代理。';
+  $('toggleKey').addEventListener('click',()=>{const el=$('apiKey');el.type=el.type==='password'?'text':'password';$('toggleKey').textContent=el.type==='password'?'显示':'隐藏'});
+  function toast(msg){clearTimeout(toaster);const t=$('toast');t.textContent=msg;t.classList.add('visible');toaster=setTimeout(()=>t.classList.remove('visible'),3500)}
+  function sizeFormat(bytes){return bytes<1024*1024?(bytes/1024).toFixed(1)+' KB':(bytes/1024/1024).toFixed(2)+' MB'}
+  function setStatus(msg,kind=''){const el=$('status');el.textContent='● '+msg;el.className='status '+kind}
+  function setResult(text,error=false){resultText=error?'':text;const el=$('result');el.textContent=text;el.classList.toggle('errorText',error);$('copy').disabled=!resultText;$('download').disabled=!resultText;$('outputStats').textContent=error?'调用失败':resultText?`约 ${resultText.length} 字符`:'尚无结果'}
+  function clearFile(){if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;file=null;$('preview').removeAttribute('src');$('drop').classList.remove('hasimage');$('fileInput').value='';$('fileName').textContent='尚未选择图片';$('fileSize').textContent='—'}
+  $('clearImage').addEventListener('click',clearFile);
+  $('browse').addEventListener('click',e=>{e.stopPropagation();$('fileInput').click()});
+  $('drop').addEventListener('click',()=>$('fileInput').click());
+  $('drop').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click()}});
+  for(const evt of ['dragenter','dragover'])$('drop').addEventListener(evt,e=>{e.preventDefault();$('drop').classList.add('drag')});
+  for(const evt of ['dragleave','drop'])$('drop').addEventListener(evt,e=>{e.preventDefault();$('drop').classList.remove('drag')});
+  $('drop').addEventListener('drop',e=>{const f=Array.from(e.dataTransfer?.files||[]).find(f=>f.type.startsWith('image/'));if(f)chooseFile(f)});
+  $('fileInput').addEventListener('change',e=>{if(e.target.files[0])chooseFile(e.target.files[0])});
+  window.addEventListener('paste',e=>{const img=Array.from(e.clipboardData?.items||[]).find(i=>i.type.startsWith('image/'));if(img){const f=img.getAsFile();if(f){e.preventDefault();chooseFile(f);toast('已从剪贴板粘贴图片')}}});
+  async function chooseFile(f){
+    if(!['image/jpeg','image/png','image/webp'].includes(f.type)){toast('请选择 JPG、PNG 或 WebP 图片');return}
+    if(f.size>5*1024*1024){toast('图片超过 5 MB，请先压缩或缩小图片后再上传');return}
+    clearFile();file=f;imageURL=URL.createObjectURL(f);$('preview').src=imageURL;$('drop').classList.add('hasimage');$('fileName').textContent=f.name||'粘贴的图片';$('fileSize').textContent=sizeFormat(f.size);setStatus('图片已就绪');
+  }
+  document.querySelectorAll('[data-preset]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-preset]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');$('prompt').value=PRESETS[btn.dataset.preset]}));
+  $('prompt').addEventListener('input',()=>document.querySelectorAll('[data-preset]').forEach(b=>b.classList.remove('active')));
+  function readAsDataURL(f){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('读取图片失败'));r.readAsDataURL(f)})}
+  async function getImageData(f){
+    if(f.type!=='image/webp')return readAsDataURL(f);
+    const img=await createImageBitmap(f);try{const canvas=document.createElement('canvas');canvas.width=img.width;canvas.height=img.height;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,img.width,img.height);ctx.drawImage(img,0,0);return canvas.toDataURL('image/jpeg',.9)}finally{img.close()}
+  }
+  function renderThinking(){const el=$('result');el.classList.remove('errorText');el.textContent='正在上传图片并等待 GLM 返回结果…\n\n免费模型在繁忙时可能需要稍长时间。';$('outputStats').textContent='正在识别';$('copy').disabled=true;$('download').disabled=true;resultText=''}
+  function apiMessage(data){if(typeof data?.choices?.[0]?.message?.content==='string')return data.choices[0].message.content;if(Array.isArray(data?.choices?.[0]?.message?.content))return data.choices[0].message.content.filter(x=>x.type==='text').map(x=>x.text).join('\n');if(typeof data?.output?.text==='string')return data.output.text;return ''}
+  $('cancel').addEventListener('click',()=>controller?.abort());
+  $('run').addEventListener('click',async()=>{
+    const key=$('apiKey').value.trim();const prompt=$('prompt').value.trim();
+    if(!key){toast('请先输入 API Key');$('apiKey').focus();return}
+    if(!file){toast('请先上传一张图片');return}
+    if(!prompt){toast('请输入识别指令');return}
+    controller=new AbortController();$('run').disabled=true;$('run').innerHTML='<span class="spinner"></span>识别中…';$('cancel').hidden=false;renderThinking();setStatus('识别中','running');
+    try{
+      let imgData=await getImageData(file);if(controller.signal.aborted)throw new DOMException('Aborted','AbortError');
+      if(imgData.length>7.5*1024*1024)throw new Error('转换后的图片数据过大，请压缩后再试');
+      const payload={model:'glm-4.6v-flash',messages:[{role:'user',content:[{type:'image_url',image_url:{url:imgData}},{type:'text',text:prompt}]}],max_tokens:2048,stream:false,thinking:{type:'disabled'}};
+      const selected=$('mode').value;const useProxy=selected==='proxy'||(selected==='auto'&&isLocalServer);
+      const url=useProxy?'/api/analyze':ENDPOINT;
+      const headers={'Content-Type':'application/json'};
+      const body=useProxy?{api_key:key,payload}:payload;
+      if(!useProxy)headers.Authorization=`Bearer ${key}`;
+      const response=await fetch(url,{method:'POST',headers,body:JSON.stringify(body),signal:controller.signal});
+      const raw=await response.text();let data;try{data=JSON.parse(raw)}catch{throw new Error(`接口返回了无法解析的数据（HTTP ${response.status}）`)}
+      if(!response.ok){const msg=data?.error?.message||data?.message||data?.msg||JSON.stringify(data).slice(0,500);throw new Error(`HTTP ${response.status}：${msg}`)}
+      const output=apiMessage(data);if(!output)throw new Error('接口调用成功，但没有解析到识别文本。响应摘要：'+JSON.stringify(data).slice(0,450));
+      setResult(output);setStatus('识别完成','good');toast('图片识别成功');
+    }catch(err){if(err.name==='AbortError'){setResult('请求已取消。',true);setStatus('已取消')}else{let msg=String(err.message||err);if(err instanceof TypeError&&/fetch|network|failed/i.test(msg)){msg='网络请求失败。若正在使用“浏览器直连”，很可能是 CORS 跨域限制：请在同一文件夹运行 python3 glm_local.py，打开 http://127.0.0.1:8765 后重试。也请检查网络是否能访问智谱接口。'}setResult('识别失败\n\n'+msg,true);setStatus('请求失败','bad');toast('识别失败，请查看右侧错误说明')}}finally{controller=null;$('run').disabled=false;$('run').textContent='✦  开始识别';$('cancel').hidden=true}
+  });
+  $('copy').addEventListener('click',async()=>{if(!resultText)return;try{await navigator.clipboard.writeText(resultText);toast('结果已复制到剪贴板')}catch{const t=document.createElement('textarea');t.value=resultText;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('结果已复制')}});
+  $('download').addEventListener('click',()=>{if(!resultText)return;const b=new Blob([resultText],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url;a.download='GLM识别结果_'+new Date().toISOString().slice(0,10)+'.txt';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+})();
+</script>
+</body>
+</html>

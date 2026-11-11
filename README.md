@@ -21,16 +21,19 @@ food-calorie-pages/
 
 **不要在 HTML 中填写，也不要把 Key 直接写进任何前端 JavaScript。**
 
-部署到 Cloudflare 后：Workers & Pages → 选择你的 Pages 项目 → Settings → Variables and Secrets（或者 Environment variables）→ 添加：
+页面上可以在两个模型之间切换，各自需要对应的 API Key：
 
-- 名称：`DASHSCOPE_API_KEY`
+- **GLM**：智谱 `glm-4.6v-flash`（免费），需要 `GLM_API_KEY`（在 https://www.bigmodel.cn/usercenter/proj-mgmt/apikeys 申请）
+- **Qwen**（默认）：阿里云百炼 `qwen3-vl-plus`，需要 `DASHSCOPE_API_KEY`（北京地域）
+
+部署到 Cloudflare 后：Workers & Pages → 选择你的 Pages 项目 → Settings → Variables and Secrets（或者 Environment variables）→ 添加上面两个 Secret（用到哪个加哪个）：
+
 - 类型：**Secret / Encrypt**
-- 值：阿里云百炼【北京地域】的 API Key
 - 环境：Production（如果需要预览版，Preview 也要配置）
 
-也可以用 `npx wrangler pages secret put DASHSCOPE_API_KEY --project-name food-calorie-mini` 配置。
+也可以用 `npx wrangler pages secret put DASHSCOPE_API_KEY --project-name food-calorie-mini` 配置（GLM 同理换成 `GLM_API_KEY`）。
 
-目前默认模型：`qwen3-vl-flash`，默认 API 地址：`https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions`（阿里云北京地域兼容接口）。这两个常量在 `functions/api/analyze.js` 文件顶部。
+可选环境变量：`QWEN_MODEL` / `GLM_MODEL` 覆盖模型 ID；`DASHSCOPE_API_URL` / `GLM_API_URL` 覆盖接口地址（阿里云其他地域用 `https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions`）。
 
 如果使用**新加坡等其他地域**，需要按照该地域的百炼 API 文档更换 API_URL，并配套使用该地域的 API Key。
 

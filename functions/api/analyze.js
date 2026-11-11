@@ -1,5 +1,26 @@
-const API_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
-const MODEL = 'qwen3-vl-plus';
+// 两个可选模型：GLM（智谱 glm-4.6v-flash）/ Qwen（阿里云百炼 qwen3-vl-plus）
+// 接口地址、模型 ID 均可用环境变量覆盖（QWEN_MODEL / GLM_MODEL / DASHSCOPE_API_URL / GLM_API_URL）
+const DEFAULT_PROVIDER = 'qwen';
+const PROVIDERS = {
+  glm: {
+    name: 'GLM',
+    vendor: '智谱',
+    keyName: 'GLM_API_KEY',
+    key: (env) => env.GLM_API_KEY,
+    apiUrl: (env) => env.GLM_API_URL || 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+    model: (env) => env.GLM_MODEL || 'glm-4.6v-flash',
+    extraBody: { max_tokens: 2048, thinking: { type: 'disabled' } }
+  },
+  qwen: {
+    name: 'Qwen',
+    vendor: '阿里云百炼',
+    keyName: 'DASHSCOPE_API_KEY',
+    key: (env) => env.DASHSCOPE_API_KEY,
+    apiUrl: (env) => env.DASHSCOPE_API_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+    model: (env) => env.QWEN_MODEL || 'qwen3-vl-plus',
+    extraBody: { response_format: { type: 'json_object' } }
+  }
+};
 const MAX_IMAGE_LENGTH = 7_000_000;
 const MAX_BODY_LENGTH = MAX_IMAGE_LENGTH + 2048;
 
@@ -19,6 +40,11 @@ function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: jsonHeaders });
 }
 function parseResult(content) {
+  // GLM 可能返回分段 content 数组，先拼成纯文本
+  if (Array.isArray(content)) {
+    content = content.filter((part) => part?.type === 'text' && typeof part.text === 'string')
+      .map((part) => part.text).join('\n');
+  }
   if (typeof content !== 'string') throw new Error('模型未返回文本');
   const cleaned = content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
   let result;
@@ -39,7 +65,6 @@ function parseResult(content) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!env.DASHSCOPE_API_KEY) return json({ error: '管理员尚未配置 DASHSCOPE_API_KEY。' }, 503);
   if (env.SITE_ACCESS_CODE && request.headers.get('X-Access-Code') !== env.SITE_ACCESS_CODE) {
     return json({ error: '访问码不正确。' }, 403);
   }
@@ -56,17 +81,26 @@ export async function onRequestPost({ request, env }) {
     return json({ error: '图片格式或大小不符合要求，请换一张 JPG / PNG / WebP 照片。' }, 400);
   }
 
+  // 模型选择：model = 'glm' | 'qwen'，未传或不合法时用默认模型（Qwen）
+  const requested = typeof payload?.model === 'string' ? payload.model.toLowerCase() : '';
+  const provider = PROVIDERS[requested] ? requested : DEFAULT_PROVIDER;
+  const config = PROVIDERS[provider];
+  const apiKey = config.key(env);
+  if (!apiKey) return json({ error: `管理员尚未配置 ${config.keyName}（${config.name} 模型）。` }, 503);
+  const apiUrl = config.apiUrl(env);
+  const model = config.model(env);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 35000);
   try {
-    const upstream = await fetch(API_URL, {
+    const upstream = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${env.DASHSCOPE_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: [
@@ -74,18 +108,27 @@ export async function onRequestPost({ request, env }) {
             { type: 'image_url', image_url: { url: image } }
           ] }
         ],
-        response_format: { type: 'json_object' },
-        stream: false
+        stream: false,
+        ...config.extraBody
       }),
       signal: controller.signal
     });
 
     const data = await upstream.json().catch(() => null);
     if (!upstream.ok) {
-      if (upstream.status === 429) return json({ error: '模型请求过于频繁，请稍后重试。' }, 429);
-      if (upstream.status === 401 || upstream.status === 403) return json({ error: '阿里云 API Key 无效、地域错误或无模型权限。' }, 502);
-      if (upstream.status === 400) return json({ error: '模型拒绝此次请求，请检查图片或模型开通状态。' }, 502);
-      return json({ error: `模型调用失败（HTTP ${upstream.status}）。` }, 502);
+      const detail = typeof data?.error?.message === 'string' ? data.error.message : '';
+      const where = `${config.vendor}·${config.name}`;
+      if (upstream.status === 429) return json({ error: '模型请求过于频繁（限流），请稍后重试。' }, 429);
+      if (upstream.status === 401 || upstream.status === 403) {
+        return json({ error: `${where} 的 API Key 无效或无权限：请检查 ${config.keyName} 是否正确、所属地域（北京/新加坡接口地址不同）以及模型访问权限。` }, 502);
+      }
+      if (upstream.status === 404 || /not\s*found|does not exist/i.test(detail)) {
+        return json({ error: `${where} 的模型 ${model} 不存在或未开通：请在${config.vendor}控制台开通该模型，或切换到另一个模型重试。` }, 502);
+      }
+      if (upstream.status === 400) {
+        return json({ error: `${where} 拒绝了此次请求（${detail || '参数错误'}）。请换一张照片，或切换模型重试。` }, 502);
+      }
+      return json({ error: `${where} 调用失败（HTTP ${upstream.status}）。${detail}`.trim() }, 502);
     }
     const content = data?.choices?.[0]?.message?.content;
     let result;
@@ -94,7 +137,7 @@ export async function onRequestPost({ request, env }) {
     return json(result);
   } catch (err) {
     if (err?.name === 'AbortError') return json({ error: '模型响应超时，请稍后重试。' }, 504);
-    return json({ error: '连接模型服务失败，请检查网络或稍后重试。' }, 502);
+    return json({ error: '连接模型服务失败：请检查网络，或确认 API 地址与 Key 地域（北京/新加坡）一致。' }, 502);
   } finally {
     clearTimeout(timeout);
   }

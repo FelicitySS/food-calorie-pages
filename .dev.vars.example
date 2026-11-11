@@ -1,3 +1,11 @@
 # 仅用于本地调试，复制为 .dev.vars 并填入真实值，千万不要上传到 GitHub。
 DASHSCOPE_API_KEY="替换成你的阿里云百炼API_Key"
+# GLM（智谱）模型需要单独的 Key，在 https://www.bigmodel.cn/usercenter/proj-mgmt/apikeys 申请
+GLM_API_KEY="替换成你的智谱API_Key"
 # 可选：SITE_ACCESS_CODE="你自己设置的访问码"
+# 可选：覆盖默认模型 ID
+# QWEN_MODEL="qwen3-vl-plus"
+# GLM_MODEL="glm-4.6v-flash"
+# 可选：覆盖接口地址（新加坡地域阿里云用 https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions）
+# DASHSCOPE_API_URL="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+# GLM_API_URL="https://open.bigmodel.cn/api/paas/v4/chat/completions"

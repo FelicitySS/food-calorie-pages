@@ -5,8 +5,32 @@ const cameraInput = $('cameraInput');
 const galleryInput = $('galleryInput');
 const analyzeButton = $('analyzeButton');
 const statusMessage = $('statusMessage');
+const modelOptions = $('modelOptions');
 let imageDataUrl = null;
 let working = false;
+
+// 识别模型选择：GLM（智谱 glm-4.6v-flash）/ Qwen（阿里云百炼 qwen3-vl-plus），记住上次选择
+let selectedModel = 'qwen';
+try {
+  const saved = localStorage.getItem('food-lens-model');
+  if (saved && modelOptions.querySelector(`[data-model="${saved}"]`)) selectedModel = saved;
+} catch { /* localStorage 不可用时用默认模型 */ }
+function renderModelOptions() {
+  for (const btn of modelOptions.querySelectorAll('.model-option')) {
+    const active = btn.dataset.model === selectedModel;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-checked', String(active));
+    btn.disabled = working;
+  }
+}
+modelOptions.addEventListener('click', (event) => {
+  const btn = event.target.closest('.model-option');
+  if (!btn || working) return;
+  selectedModel = btn.dataset.model;
+  try { localStorage.setItem('food-lens-model', selectedModel); } catch { /* 忽略 */ }
+  renderModelOptions();
+});
+renderModelOptions();
 
 $('cameraButton').addEventListener('click', () => { if (!working) cameraInput.click(); });
 $('galleryButton').addEventListener('click', () => { if (!working) galleryInput.click(); });
@@ -31,6 +55,7 @@ function setWorking(value) {
   analyzeButton.disabled = value || !imageDataUrl;
   $('cameraButton').disabled = value;
   $('galleryButton').disabled = value;
+  renderModelOptions();
   $('buttonText').textContent = value ? '正在分析，请稍候…' : imageDataUrl ? '确认并分析' : '先拍摄或选择照片';
   $('buttonArrow').hidden = value;
 }
@@ -110,7 +135,7 @@ async function analyze() {
         'Content-Type': 'application/json',
         'X-Access-Code': $('accessCode').value.trim()
       },
-      body: JSON.stringify({ image: imageDataUrl }),
+      body: JSON.stringify({ image: imageDataUrl, model: selectedModel }),
       signal: controller.signal
     });
     let data;
